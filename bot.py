@@ -22,7 +22,7 @@ service = apiclient.discovery.build('sheets', 'v4', http = httpAuth)
 
 
 async def start(message: types.Message):
-    await bot.send_message(message.from_user.id, """Вітаємо! Тут ви можете поставити анонімне запитання церкві Джерело Життя.""")
+    await bot.send_message(message.from_user.id, """Вітаємо! Тут ви можете поставити анонімне запитання молодіжному пастору та служителям церкви Джерело Життя.""")
 
 async def question(message: types.Message):
     values = [message.text, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")]
