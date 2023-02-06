@@ -13,7 +13,7 @@ bot = Bot(token="6104534691:AAGhCIFMir8KonzQFZTvymKTeJCLbizmQDA")
 dp = Dispatcher(bot)
 
 CREDENTIALS_FILE = 'cred.json'
-SRPEADSHEED_ID = '1vqF7spKok-BJiHrFCMhDwhNCHhP3bLRQmw8PTZEo9o0'
+SRPEADSHEED_ID = '19STdLYWFHwGuf_l17ToKlp2SM4qmPW44H2vJEN54L6A'
 
 credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, ['https://www.googleapis.com/auth/spreadsheets',
                                                                                   'https://www.googleapis.com/auth/drive'])
