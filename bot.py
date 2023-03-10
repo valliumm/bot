@@ -137,5 +137,5 @@ async def send_answer():
 
 
 if __name__ == '__main__':
-    scheduler.start()
+    # scheduler.start()
     executor.start_polling(dp, skip_updates=True)
