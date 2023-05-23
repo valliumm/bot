@@ -10,8 +10,8 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemo
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from oauth2client.service_account import ServiceAccountCredentials
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# from apscheduler.triggers.interval import IntervalTrigger
 import apiclient.discovery
 
 
@@ -57,46 +57,50 @@ start_message = """🙌🏻Привіт!
     - неаноміне питання 
     (тобто ви можете залишити контакт і ми відповімо особисто на ваше питання)"""
 
-async def start(message: types.Message):
-    await Form.option.set()
+start_message = """🙌🏻Привіт!
 
-    await bot.send_message(message.from_user.id, start_message, reply_markup=kb_client)
+    ⁉️Тут можеш поставити питання, на яке ми з радістю дамо відповідь найближчим часом!"""
+
+async def start(message: types.Message):
+    await Form.question.set()
+
+    await bot.send_message(message.from_user.id, start_message)
 
 async def cancel(message: types.Message, state: FSMContext):
     await state.finish()
-    await Form.option.set()
-    await bot.send_message(message.from_user.id, start_message, reply_markup=kb_client)
+    await Form.question.set()
+    await bot.send_message(message.from_user.id, start_message)
 
-async def option(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['option'] = message.text
+# async def option(message: types.Message, state: FSMContext):
+#     async with state.proxy() as data:
+#         data['option'] = message.text
 
-        if message.text == Option.bot:
-            data['id'] = message.from_user.id
-            await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
-            await Form.next()
-            await Form.next()
+#         if message.text == Option.bot:
+#             data['id'] = message.from_user.id
+#             await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
+#             await Form.next()
+#             await Form.next()
 
-        if message.text == Option.post:
-            await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
-            await Form.next()
-            await Form.next()
+#         if message.text == Option.post:
+#             await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
+#             await Form.next()
+#             await Form.next()
 
-        if message.text == Option.notanon:
-            await bot.send_message(message.from_user.id, "Будь ласка, надайте свої контакти.", reply_markup=kb_start)
-            await Form.next()
+#         if message.text == Option.notanon:
+#             await bot.send_message(message.from_user.id, "Будь ласка, надайте свої контакти.", reply_markup=kb_start)
+#             await Form.next()
 
-async def contact(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['contact'] = message.text
-    await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
-    await Form.next()
+# async def contact(message: types.Message, state: FSMContext):
+#     async with state.proxy() as data:
+#         data['contact'] = message.text
+#     await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
+#     await Form.next()
 
 
 async def question(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['question'] = message.text
-        values = [datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), data.get('option'), 
+        values = [datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Пост в інстаграмі/телеграмі', 
         data.get('contact'), data.get('id'), data.get('question'), "", "no"]
     request = service.spreadsheets().values().append(
         spreadsheetId=SRPEADSHEED_ID,
@@ -114,28 +118,28 @@ async def question(message: types.Message, state: FSMContext):
 
 dp.register_message_handler(cancel, lambda msg: msg.text.lower() == 'на початок', state="*")
 dp.register_message_handler(start, commands=['start', 'help', "Почати з початку"])
-dp.register_message_handler(option, state=Form.option)
-dp.register_message_handler(contact, state=Form.contact)
+# dp.register_message_handler(option, state=Form.option)
+# dp.register_message_handler(contact, state=Form.contact)
 dp.register_message_handler(question, state=Form.question)
 
 
-scheduler = AsyncIOScheduler()
-@scheduler.scheduled_job(IntervalTrigger(seconds=10))
-async def send_answer():
-    request = service.spreadsheets().values().get(spreadsheetId=SRPEADSHEED_ID, range='A1:G1000000')
-    response = request.execute()
-    for row, data in enumerate(response['values'], start=1):
-        if str(data[6]).lower() == 'no':
-            if data[5].startswith("[") and data[5].endswith("]"):
-                await bot.send_message(data[3], data[5][1:-1])
-                request = service.spreadsheets().values().update(
-                    spreadsheetId=SRPEADSHEED_ID,
-                    range=f'G${row}',
-                    valueInputOption='RAW',
-                    body={"values": [["yes"]]}
-                    ).execute()
+# scheduler = AsyncIOScheduler()
+# @scheduler.scheduled_job(IntervalTrigger(seconds=10))
+# async def send_answer():
+#     request = service.spreadsheets().values().get(spreadsheetId=SRPEADSHEED_ID, range='A1:G1000000')
+#     response = request.execute()
+#     for row, data in enumerate(response['values'], start=1):
+#         if str(data[6]).lower() == 'no':
+#             if data[5].startswith("[") and data[5].endswith("]"):
+#                 await bot.send_message(data[3], data[5][1:-1])
+#                 request = service.spreadsheets().values().update(
+#                     spreadsheetId=SRPEADSHEED_ID,
+#                     range=f'G${row}',
+#                     valueInputOption='RAW',
+#                     body={"values": [["yes"]]}
+#                     ).execute()
 
 
 if __name__ == '__main__':
-    scheduler.start()
+    # scheduler.start()
     executor.start_polling(dp, skip_updates=True)
