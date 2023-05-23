@@ -15,7 +15,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import apiclient.discovery
 
 
-bot = Bot(token="6104534691:AAGhCIFMir8KonzQFZTvymKTeJCLbizmQDA")
+bot = Bot(token="6104534691:AAE2C2fo_a_wylPGiCgKNdYATSFKbh3tmN0")
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 CREDENTIALS_FILE = 'cred.json'
@@ -26,17 +26,9 @@ credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE,
 httpAuth = credentials.authorize(httplib2.Http())
 service = apiclient.discovery.build('sheets', 'v4', http = httpAuth)
 
-# @dataclass
-# class Option:
-#     notanon = "Неанонімне питання"
-#     post = "Пост в інстаграмі/телеграмі"
-#     bot = "Через бота"
 
 kb_start = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
-kb_start.row(KeyboardButton("На початок"))
-
-# kb_client = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
-# kb_client.row(KeyboardButton(Option.post), KeyboardButton(Option.bot), KeyboardButton(Option.notanon))
+kb_start.row(KeyboardButton("Запитати ще"))
 
 
 class Form(StatesGroup):
@@ -44,18 +36,6 @@ class Form(StatesGroup):
     contact = State()
     question = State()
 
-# start_message = """🙌🏻Привіт!
-
-#     ⁉️Тут можеш поставити питання, на яке ми з радістю дамо відповідь найближчим часом!
-#     Вкажіть, як саме ви хочете отримати відповідь? 
-
-#     - пост в інстаграмі / телеграмі
-#     Відповідь на кілька питань у спільному чаті Dyouth та на платформі інстаграму (наголошуємо, що автори питань завжди анонімні) 
-
-#     - через бота Dyouth
-
-#     - неаноміне питання 
-#     (тобто ви можете залишити контакт і ми відповімо особисто на ваше питання)"""
 
 start_message = """🙌🏻Привіт!
 
@@ -64,37 +44,8 @@ start_message = """🙌🏻Привіт!
 async def start(message: types.Message):
     await Form.question.set()
 
-    await bot.send_message(message.from_user.id, start_message)
+    await bot.send_message(message.from_user.id, start_message, reply_markup=ReplyKeyboardRemove())
 
-async def cancel(message: types.Message, state: FSMContext):
-    await state.finish()
-    await Form.question.set()
-    await bot.send_message(message.from_user.id, start_message)
-
-# async def option(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         data['option'] = message.text
-
-#         if message.text == Option.bot:
-#             data['id'] = message.from_user.id
-#             await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
-#             await Form.next()
-#             await Form.next()
-
-#         if message.text == Option.post:
-#             await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
-#             await Form.next()
-#             await Form.next()
-
-#         if message.text == Option.notanon:
-#             await bot.send_message(message.from_user.id, "Будь ласка, надайте свої контакти.", reply_markup=kb_start)
-#             await Form.next()
-
-# async def contact(message: types.Message, state: FSMContext):
-#     async with state.proxy() as data:
-#         data['contact'] = message.text
-#     await bot.send_message(message.from_user.id, "Чекаємо твоє питання)", reply_markup=kb_start)
-#     await Form.next()
 
 
 async def question(message: types.Message, state: FSMContext):
@@ -111,35 +62,14 @@ async def question(message: types.Message, state: FSMContext):
             'values': [values]
         }
     ).execute()
-    await bot.send_message(message.from_user.id, """💪🏼Цінуємо за довіру!""")
+    await bot.send_message(message.from_user.id, """💪🏼Цінуємо за довіру!""", reply_markup=kb_start)
     await state.finish()
 
 
 
-dp.register_message_handler(cancel, lambda msg: msg.text.lower() == 'на початок', state="*")
-dp.register_message_handler(start, commands=['start', 'help', "Почати з початку"])
-# dp.register_message_handler(option, state=Form.option)
-# dp.register_message_handler(contact, state=Form.contact)
+dp.register_message_handler(start, lambda msg: msg.text.lower() in ['start', 'help', "почати з початку", "запитати ще"], state='*')
 dp.register_message_handler(question, state=Form.question)
 
 
-# scheduler = AsyncIOScheduler()
-# @scheduler.scheduled_job(IntervalTrigger(seconds=10))
-# async def send_answer():
-#     request = service.spreadsheets().values().get(spreadsheetId=SRPEADSHEED_ID, range='A1:G1000000')
-#     response = request.execute()
-#     for row, data in enumerate(response['values'], start=1):
-#         if str(data[6]).lower() == 'no':
-#             if data[5].startswith("[") and data[5].endswith("]"):
-#                 await bot.send_message(data[3], data[5][1:-1])
-#                 request = service.spreadsheets().values().update(
-#                     spreadsheetId=SRPEADSHEED_ID,
-#                     range=f'G${row}',
-#                     valueInputOption='RAW',
-#                     body={"values": [["yes"]]}
-#                     ).execute()
-
-
 if __name__ == '__main__':
-    # scheduler.start()
     executor.start_polling(dp, skip_updates=True)
